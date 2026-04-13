@@ -5,7 +5,7 @@
  * incluyendo descuentos y precisión decimal en operaciones monetarias.
  */
 
-import type { Producto, ElementoCarrito, Cliente, TotalesPedido } from './carrito';
+import type { Producto, ElementoCarrito } from './carrito';
 import { calcularTotalesPedido, carritoEjemplo, clienteEjemplo } from './carrito';
 
 // ============================================================================

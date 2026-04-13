@@ -253,7 +253,7 @@ export function PanelConfigurador() {
             <label className="block text-xs font-semibold text-gray-700 mb-2 uppercase">
               Mano
             </label>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-row flex-wrap gap-2">
               <RadioButton
                 label="Sin mano"
                 value={0}
@@ -300,16 +300,6 @@ export function PanelConfigurador() {
                 +
               </button>
             </div>
-
-            {/* Desglose de Precio */}
-            <div className="border-t border-gray-200 pt-4">
-              <p className="text-xs text-gray-600 mb-2">
-                Precio Unitario: <span className="font-semibold">{PRECIO_BASE.toFixed(2)}€</span>
-              </p>
-              <p className="text-2xl font-bold text-[#00aec7] text-center">
-                Total: {(cantidad * PRECIO_BASE).toFixed(2)}€
-              </p>
-            </div>
           </div>
 
           {/* Botón Añadir al Carrito */}
@@ -321,9 +311,19 @@ export function PanelConfigurador() {
         {/* ============================================================
             COLUMNA CENTRAL: VISOR DE IMAGEN
             ============================================================ */}
-        <div className="col-span-12 md:col-span-4 flex items-center justify-center">
-          <div className="w-full h-full aspect-video min-h-[300px] border-4 border-black bg-white flex items-center justify-center font-bold text-xl">
+        <div className="col-span-12 md:col-span-4 flex flex-col items-center justify-center">
+          <div className="w-full max-w-[800px] aspect-square mx-auto border border-gray-300 bg-white rounded-xl flex items-center justify-center font-bold text-gray-400 text-xl shadow-sm">
             imagen
+          </div>
+
+          {/* Tarjeta de Precio */}
+          <div className="w-full max-w-[280px] mx-auto mt-6 bg-white border-2 border-[#00aec7] rounded-xl p-4 text-center shadow-md">
+            <p className="text-sm text-gray-500 mb-1">
+              Precio Unitario: <span className="font-semibold text-gray-700">{PRECIO_BASE.toFixed(2)}€</span>
+            </p>
+            <p className="text-2xl font-bold text-[#00aec7]">
+              Total: {(cantidad * PRECIO_BASE).toFixed(2)}€
+            </p>
           </div>
         </div>
 

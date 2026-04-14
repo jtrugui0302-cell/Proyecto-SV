@@ -11,6 +11,15 @@ interface RadioOptionProps {
   key?: string;
 }
 
+export interface ItemCarrito {
+  id: string;
+  titulo: string; // Ej: "Modelo 3 - Módulo 1"
+  detalles: string; // Ej: "Categoría 10, Premium, Con Tirador..."
+  cantidad: number;
+  precioUnitario: number;
+  precioTotal: number;
+}
+
 // ============================================================================
 // FUNCIONES DE TRADUCCIÓN (View Model)
 // ============================================================================
@@ -83,10 +92,46 @@ function RadioButton({
 export function PanelConfigurador() {
   const { config, codigo: _codigo, handleChange } = useConfigurador();
   const [cantidad, setCantidad] = useState(1);
+  const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   const PRECIO_BASE = 150.00;
 
   const incrementarCantidad = () => setCantidad((prev) => prev + 1);
   const decrementarCantidad = () => setCantidad((prev) => (prev > 1 ? prev - 1 : 1));
+
+  const agregarAlCarrito = () => {
+    const id = globalThis.crypto?.randomUUID?.() ?? Date.now().toString();
+
+    const titulo = `Modelo ${config.modeloPuerta} - Módulo ${config.codigoModulo}`;
+    const detalles = [
+      `Categoría ${config.categoria}`,
+      `Subcategoría ${config.subcategoria}`,
+      `Medida ${config.medida}`,
+      traduccionAcabado(config.acabado),
+      traduccionTirador(config.tirador),
+      traduccionAltura(config.altura),
+      traduccionMano(config.direccionPuerta),
+    ].join(', ');
+
+    const precioUnitario = PRECIO_BASE;
+    const precioTotal = cantidad * PRECIO_BASE;
+
+    const nuevoItem: ItemCarrito = {
+      id,
+      titulo,
+      detalles,
+      cantidad,
+      precioUnitario,
+      precioTotal,
+    };
+
+    setCarrito((prev) => [...prev, nuevoItem]);
+  };
+
+  const eliminarDelCarrito = (id: string) => {
+    setCarrito((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const totalPedido = carrito.reduce((acc, item) => acc + item.precioTotal, 0);
 
   return (
     <div className="w-full min-h-screen bg-gray-50 flex flex-col">
@@ -94,15 +139,15 @@ export function PanelConfigurador() {
           HEADER
           ================================================================ */}
       <header className="w-full bg-white shadow-sm border-b-4 border-[#eb5c00]">
-        <div className="px-4 md:px-8 xl:px-12 py-4 flex items-center gap-4">
+        <div className="px-4 md:px-12 xl:px-16 py-4 flex items-center gap-4">
           <img
             src="/logo-santiago-vargas.png"
             alt="Logo Santiago Vargas"
-            className="h-20 w-auto object-contain"
+            className="h-16 w-auto object-contain pb-2"
           />
-          <h1 className="text-xl font-extrabold text-[#00aec7] uppercase tracking-wide">
+          <p className="text-3xl font-extrabold text-[#00aec7] uppercase tracking-wide ps-10">
             Configurador de muebles
-          </h1>
+          </p>
         </div>
       </header>
 
@@ -114,7 +159,7 @@ export function PanelConfigurador() {
           {/* Modelo Puerta */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex-1 min-w-[150px] flex flex-col items-center justify-center text-center">
             <label className="text-xs font-bold text-[#00aec7] uppercase mb-2">
-              Modelo
+              Modelo de Puerta
             </label>
             <select
               value={config.modeloPuerta}
@@ -132,7 +177,7 @@ export function PanelConfigurador() {
           {/* Código Módulo */}
           <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex-1 min-w-[150px] flex flex-col items-center justify-center text-center">
             <label className="text-xs font-bold text-[#00aec7] uppercase mb-2">
-              Módulo
+              Color del Módulo
             </label>
             <select
               value={config.codigoModulo}
@@ -196,19 +241,19 @@ export function PanelConfigurador() {
             </label>
             <div className="flex gap-2 flex-wrap justify-center">
               <RadioButton
-                label="Altos"
+                label="Modulos Altos"
                 value={0}
                 selectedValue={config.altura}
                 onChange={(value) => handleChange('altura', value)}
               />
               <RadioButton
-                label="Bajos 70"
+                label="Modulos 70"
                 value={1}
                 selectedValue={config.altura}
                 onChange={(value) => handleChange('altura', value)}
               />
               <RadioButton
-                label="Bajos 80"
+                label="Modulos 80"
                 value={2}
                 selectedValue={config.altura}
                 onChange={(value) => handleChange('altura', value)}
@@ -371,7 +416,10 @@ export function PanelConfigurador() {
           </div>
 
           {/* Botón Añadir al Carrito */}
-          <button className="w-full bg-[#eb5c00] hover:bg-[#c94e00] text-white text-lg font-bold py-3 rounded-xl shadow-lg transition-all duration-200 w-full mt-4 transform hover:shadow-xl">
+          <button
+            onClick={agregarAlCarrito}
+            className="w-full bg-[#eb5c00] hover:bg-[#c94e00] text-white text-lg font-bold py-3 rounded-xl shadow-lg transition-all duration-200 w-full mt-4 transform hover:shadow-xl"
+          >
             Añadir al Carrito
           </button>
         </div>
@@ -404,8 +452,49 @@ export function PanelConfigurador() {
           </h2>
 
           {/* Área vacía central */}
-          <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-4 flex items-center justify-center">
-            <p className="text-gray-400 text-sm text-center italic">No hay artículos aún</p>
+          <div className="flex-1 border-2 border-dashed border-gray-300 rounded-lg p-4">
+            {carrito.length === 0 ? (
+              <div className="w-full h-full flex items-center justify-center">
+                <p className="text-gray-400 text-sm text-center italic">No hay artículos aún</p>
+              </div>
+            ) : (
+              <div className="w-full">
+                {carrito.map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-3 flex justify-between items-center relative"
+                  >
+                    <div className="pr-10">
+                      <div className="font-bold text-[#00aec7]">{item.titulo}</div>
+                      <div className="text-xs text-gray-500 mt-1">{item.detalles}</div>
+                      <div className="text-xs text-gray-600 mt-2">
+                        Cant: {item.cantidad} x {item.precioUnitario}€
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="font-bold text-lg">{item.precioTotal.toFixed(2)}€</div>
+                      <button
+                        type="button"
+                        onClick={() => eliminarDelCarrito(item.id)}
+                        className="text-red-600 hover:text-red-700"
+                        aria-label="Eliminar del carrito"
+                        title="Eliminar"
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5" aria-hidden="true">
+                          <path d="M9 3h6l1 2h4v2h-2l-1 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L6 7H4V5h4l1-2Zm1.2 6.3 1.4 1.4L12 12l1.4-1.3 1.4-1.4 1.4 1.4L13.4 13.4l1.4 1.4-1.4 1.4L12 14.8l-1.4 1.4-1.4-1.4 1.4-1.4-1.4-1.4 1.4-1.4ZM10.2 5l-.5 1h4.6l-.5-1h-3.6Z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-200 flex items-center justify-between">
+            <div className="font-bold text-gray-700">Total</div>
+            <div className="text-2xl font-extrabold text-gray-900">{totalPedido.toFixed(2)}€</div>
           </div>
 
           {/* Botón Finalizar Pedido */}

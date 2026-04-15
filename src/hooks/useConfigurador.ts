@@ -4,15 +4,15 @@ import { generarCodigoSV } from '../configuradorProductos';
 
 // Valores por defecto para inicializar el configurador
 const CONFIGURACION_INICIAL: ConfiguracionProducto = {
-  modeloPuerta: '1',
-  codigoModulo: 'A',
-  acabado: 0,           // Base
-  tirador: 0,           // Sin tirador
-  altura: 0,            // Sin altura
-  categoria: '10',
-  subcategoria: 'X',
-  medida: '80',
-  direccionPuerta: 0,   // Sin dirección
+  modeloPuerta: '',
+  codigoModulo: '',
+  acabado: -1,
+  tirador: -1,
+  altura: -1,
+  categoria: '',
+  subcategoria: '',
+  medida: '',
+  direccionPuerta: -1,
 };
 
 interface UseConfiguradoResult {

@@ -93,12 +93,31 @@ export function PanelConfigurador() {
   const { config, codigo: _codigo, handleChange } = useConfigurador();
   const [cantidad, setCantidad] = useState(1);
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
+  const [errorValidacion, setErrorValidacion] = useState<string | null>(null);
   const PRECIO_BASE = 150.00;
 
   const incrementarCantidad = () => setCantidad((prev) => prev + 1);
   const decrementarCantidad = () => setCantidad((prev) => (prev > 1 ? prev - 1 : 1));
 
   const agregarAlCarrito = () => {
+    const faltantes: string[] = [];
+
+    if (!config.modeloPuerta) faltantes.push('Modelo');
+    if (!config.codigoModulo) faltantes.push('Módulo');
+    if (!config.categoria) faltantes.push('Categoría');
+    if (!config.subcategoria) faltantes.push('Subcategoría');
+    if (!config.medida) faltantes.push('Medida');
+    if (config.acabado === -1) faltantes.push('Acabado');
+    if (config.tirador === -1) faltantes.push('Tirador');
+    if (config.altura === -1) faltantes.push('Altura');
+    if (config.direccionPuerta === -1) faltantes.push('Mano');
+
+    if (faltantes.length > 0) {
+      setErrorValidacion(`Por favor, selecciona: ${faltantes.join(', ')}`);
+      return;
+    }
+
+    setErrorValidacion(null);
     const id = globalThis.crypto?.randomUUID?.() ?? Date.now().toString();
 
     const titulo = `Modelo ${config.modeloPuerta} - Módulo ${config.codigoModulo}`;
@@ -129,6 +148,23 @@ export function PanelConfigurador() {
 
   const eliminarDelCarrito = (id: string) => {
     setCarrito((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const actualizarCantidadCarrito = (id: string, variacion: number) => {
+    setCarrito((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
+
+        const nuevaCantidad = item.cantidad + variacion;
+        if (nuevaCantidad < 1) return item;
+
+        return {
+          ...item,
+          cantidad: nuevaCantidad,
+          precioTotal: nuevaCantidad * item.precioUnitario,
+        };
+      }),
+    );
   };
 
   const totalPedido = carrito.reduce((acc, item) => acc + item.precioTotal, 0);
@@ -166,6 +202,9 @@ export function PanelConfigurador() {
               onChange={(e) => handleChange('modeloPuerta', e.target.value)}
               className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aec7] focus:border-transparent bg-white cursor-pointer text-center"
             >
+              <option value="" disabled>
+                Selecciona...
+              </option>
               <option value="1">Modelo 1</option>
               <option value="2">Modelo 2</option>
               <option value="3">Modelo 3</option>
@@ -184,6 +223,9 @@ export function PanelConfigurador() {
               onChange={(e) => handleChange('codigoModulo', e.target.value)}
               className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aec7] focus:border-transparent bg-white cursor-pointer text-center"
             >
+              <option value="" disabled>
+                Selecciona...
+              </option>
               <option value="A">Módulo A</option>
               <option value="B">Módulo B</option>
               <option value="C">Módulo C</option>
@@ -281,6 +323,9 @@ export function PanelConfigurador() {
               onChange={(e) => handleChange('categoria', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
             >
+              <option value="" disabled>
+                Selecciona...
+              </option>
               <option value="05">Categoría 05</option>
               <option value="10">Categoría 10</option>
               <option value="15">Categoría 15</option>
@@ -299,6 +344,9 @@ export function PanelConfigurador() {
               onChange={(e) => handleChange('subcategoria', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
             >
+              <option value="" disabled>
+                Selecciona...
+              </option>
               <option value="X">Subcategoría X</option>
               <option value="Y">Subcategoría Y</option>
               <option value="Z">Subcategoría Z</option>
@@ -317,6 +365,9 @@ export function PanelConfigurador() {
               onChange={(e) => handleChange('medida', e.target.value)}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white cursor-pointer"
             >
+              <option value="" disabled>
+                Selecciona...
+              </option>
               <option value="60">Medida 60</option>
               <option value="80">Medida 80</option>
               <option value="100">Medida 100</option>
@@ -415,6 +466,12 @@ export function PanelConfigurador() {
             </div>
           </div>
 
+          {errorValidacion && (
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-bold">
+              {errorValidacion}
+            </div>
+          )}
+
           {/* Botón Añadir al Carrito */}
           <button
             onClick={agregarAlCarrito}
@@ -467,8 +524,32 @@ export function PanelConfigurador() {
                     <div className="pr-10">
                       <div className="font-bold text-[#00aec7]">{item.titulo}</div>
                       <div className="text-xs text-gray-500 mt-1">{item.detalles}</div>
-                      <div className="text-xs text-gray-600 mt-2">
-                        Cant: {item.cantidad} x {item.precioUnitario}€
+
+                      <div className="mt-2 flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => actualizarCantidadCarrito(item.id, -1)}
+                          className="w-7 h-7 rounded-md border border-gray-300 text-gray-700 hover:border-[#00aec7] hover:bg-blue-50 transition-all font-bold"
+                          aria-label="Reducir cantidad"
+                          title="Reducir"
+                        >
+                          −
+                        </button>
+                        <div className="min-w-[28px] text-center text-sm font-semibold text-gray-800">
+                          {item.cantidad}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => actualizarCantidadCarrito(item.id, 1)}
+                          className="w-7 h-7 rounded-md border border-gray-300 text-gray-700 hover:border-[#00aec7] hover:bg-blue-50 transition-all font-bold"
+                          aria-label="Aumentar cantidad"
+                          title="Aumentar"
+                        >
+                          +
+                        </button>
+                        <div className="ml-2 text-xs text-gray-600">
+                          x {item.precioUnitario.toFixed(2)}€
+                        </div>
                       </div>
                     </div>
 

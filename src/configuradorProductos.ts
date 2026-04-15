@@ -20,13 +20,13 @@ export interface ConfiguracionProducto {
   codigoModulo: string;
   
   // Dígito 7: Acabado (0 = Base, 1 = Premium)
-  acabado: 0 | 1;
+  acabado: -1 | 0 | 1;
   
   // Dígito 8: Tirador (0 = Sin tirador, 1 = Con tirador)
-  tirador: 0 | 1;
+  tirador: -1 | 0 | 1;
   
   // Dígito 9: Altura (0 = Sin altura, 1 = 70cm, 2 = 80cm)
-  altura: 0 | 1 | 2;
+  altura: -1 | 0 | 1 | 2;
   
   // Dígitos 10-11: Categoría (2 dígitos, ej: "10", "99")
   categoria: string;
@@ -40,7 +40,7 @@ export interface ConfiguracionProducto {
   medida: string;
   
   // Dígito 15: Dirección puerta (0 = Sin dirección, 1 = Izquierda, 2 = Derecha)
-  direccionPuerta: 0 | 1 | 2;
+  direccionPuerta: -1 | 0 | 1 | 2;
 }
 
 /**
@@ -68,31 +68,31 @@ export function generarCodigoSV(config: ConfiguracionProducto): string {
   const prefijo = "38";
   
   // Paso 2: Modelo de puerta (posiciones 3-5)
-  const modelo = config.modeloPuerta.padStart(3, "0");
+  const modelo = (config.modeloPuerta || "").padStart(3, "0");
   
   // Paso 3: Código de módulo (posición 6)
-  const modulo = config.codigoModulo.charAt(0);
+  const modulo = config.codigoModulo?.charAt(0) || "0";
   
   // Paso 4: Acabado (posición 7) - Convertir número a string
-  const acabado = config.acabado.toString();
+  const acabado = (config.acabado === -1 ? 0 : config.acabado).toString();
   
   // Paso 5: Tirador (posición 8) - Convertir número a string
-  const tirador = config.tirador.toString();
+  const tirador = (config.tirador === -1 ? 0 : config.tirador).toString();
   
   // Paso 6: Altura (posición 9) - Convertir número a string
-  const altura = config.altura.toString();
+  const altura = (config.altura === -1 ? 0 : config.altura).toString();
   
   // Paso 7: Categoría (posiciones 10-11)
-  const categoria = config.categoria.padStart(2, "0");
+  const categoria = (config.categoria || "").padStart(2, "0");
   
   // Paso 8: Subcategoría (posición 12)
-  const subcategoria = config.subcategoria.charAt(0);
+  const subcategoria = config.subcategoria?.charAt(0) || "0";
   
   // Paso 9: Medida (posiciones 13-14)
-  const medida = config.medida.padStart(2, "0");
+  const medida = (config.medida || "").padStart(2, "0");
   
   // Paso 10: Dirección puerta (posición 15) - Convertir número a string
-  const direccion = config.direccionPuerta.toString();
+  const direccion = (config.direccionPuerta === -1 ? 0 : config.direccionPuerta).toString();
   
   // Paso 11: Concatenar todos los componentes
   const codigoCompleto = 

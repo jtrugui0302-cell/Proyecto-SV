@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1776682859405" clover="3.2.0">
+  <project timestamp="1776682859406" name="All files">
+    <metrics statements="37" coveredstatements="37" conditionals="14" coveredconditionals="14" methods="8" coveredmethods="8" elements="59" coveredelements="59" complexity="0" loc="37" ncloc="37" packages="1" files="2" classes="2"/>
+    <file name="carrito.ts" path="C:\Users\Oficina\Desktop\ProyectoWebSV\frontend\src\carrito.ts">
+      <metrics statements="17" coveredstatements="17" conditionals="8" coveredconditionals="8" methods="4" coveredmethods="4"/>
+      <line num="76" count="32" type="stmt"/>
+      <line num="80" count="78" type="stmt"/>
+      <line num="101" count="1" type="stmt"/>
+      <line num="105" count="30" type="cond" truecount="4" falsecount="0"/>
+      <line num="106" count="2" type="stmt"/>
+      <line num="112" count="28" type="stmt"/>
+      <line num="113" count="34" type="cond" truecount="2" falsecount="0"/>
+      <line num="114" count="1" type="stmt"/>
+      <line num="117" count="33" type="cond" truecount="2" falsecount="0"/>
+      <line num="118" count="1" type="stmt"/>
+      <line num="121" count="32" type="stmt"/>
+      <line num="122" count="32" type="stmt"/>
+      <line num="125" count="26" type="stmt"/>
+      <line num="129" count="26" type="stmt"/>
+      <line num="131" count="26" type="stmt"/>
+      <line num="141" count="1" type="stmt"/>
+      <line num="162" count="1" type="stmt"/>
+    </file>
+    <file name="configuradorProductos.ts" path="C:\Users\Oficina\Desktop\ProyectoWebSV\frontend\src\configuradorProductos.ts">
+      <metrics statements="20" coveredstatements="20" conditionals="6" coveredconditionals="6" methods="4" coveredmethods="4"/>
+      <line num="66" count="1" type="stmt"/>
+      <line num="67" count="21" type="stmt"/>
+      <line num="68" count="6" type="stmt"/>
+      <line num="71" count="21" type="stmt"/>
+      <line num="72" count="92" type="cond" truecount="4" falsecount="0"/>
+      <line num="75" count="21" type="stmt"/>
+      <line num="76" count="70" type="cond" truecount="2" falsecount="0"/>
+      <line num="80" count="21" type="stmt"/>
+      <line num="83" count="21" type="stmt"/>
+      <line num="84" count="20" type="stmt"/>
+      <line num="85" count="19" type="stmt"/>
+      <line num="86" count="18" type="stmt"/>
+      <line num="87" count="18" type="stmt"/>
+      <line num="88" count="18" type="stmt"/>
+      <line num="89" count="17" type="stmt"/>
+      <line num="90" count="16" type="stmt"/>
+      <line num="91" count="15" type="stmt"/>
+      <line num="94" count="15" type="stmt"/>
+      <line num="105" count="15" type="stmt"/>
+      <line num="122" count="1" type="stmt"/>
+    </file>
+  </project>
+</coverage>

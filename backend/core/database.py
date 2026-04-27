@@ -18,38 +18,38 @@ def get_db_connection():
     Esta función está pensada para ser llamada cada vez que un endpoint (ruta)
     necesite consultar o modificar datos en la base de datos.
     """
-    # [Mejora 1] Rescatamos las variables primero. Si no, `if not all([...])` lanzará un NameError
-    db_host = os.getenv("DB_HOST", "localhost")
-    db_port = os.getenv("DB_PORT", "5432")
+    db_host = os.getenv("DB_HOST")
+    db_port = os.getenv("DB_PORT")
     db_name = os.getenv("DB_NAME")
     db_user = os.getenv("DB_USER")
     db_password = os.getenv("DB_PASSWORD")
 
-    # [Mejora 2] Fail Fast Corregido: Sólo obligamos las esenciales.
-    # No es necesario obligar a db_host y db_port si tienen valores por defecto confiables.
-    if not all([db_name, db_user, db_password]):
-        error_msg = "Faltan credenciales críticas (DB_NAME, DB_USER, DB_PASSWORD) en el archivo .env"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
+    if not db_user or not db_password or not db_name:
+        raise ValueError("Faltan variables de entorno críticas (DB_USER, DB_PASSWORD o DB_NAME) para la conexión a la base de datos.")
 
     try:
+        # psycopg2.connect() es la función que intenta establecer la comunicación
+        # con tu servidor local de PostgreSQL leyendo desde variables de entorno.
         connection = psycopg2.connect(
-            host=db_host,
-            port=db_port,
-            database=db_name,
-            user=db_user,
-            password=db_password,
+            host=os.getenv("DB_HOST"),
+            port=os.getenv("DB_PORT"),
+            database=os.getenv("DB_NAME"),
+            user=os.getenv("DB_USER"),
+            password=os.getenv("DB_PASSWORD"),
+            
+            # IMPORTANTE: RealDictCursor hace que la base de datos devuelva la información
+            # como diccionarios de Python (ej: {"id": 1, "nombre": "Mesa"}) 
+            # en lugar de tuplas clásicas (ej: (1, "Mesa")).
+            # Esto es clave para FastAPI porque los diccionarios se convierten a JSON automáticamente.
             cursor_factory=RealDictCursor 
         )
         return connection
     
-    except psycopg2.OperationalError as op_err:
-        # [Mejora 3] Sanitización estricta de Logs (Cero Fugas).
-        # Los errores operativos de conexión NUNCA deben imprimir raw la excepción (e).
-        logger.error("Error Operacional: Falló la autenticación o configuración de red hacia PostgreSQL (Sanitizado).")
-        raise RuntimeError("No se pudo establecer conexión con la base de datos.") from None
-        
     except Exception as e:
-        # Errores imprevistos genéricos
-        logger.error("Error Interno Inesperado al intentar contactar la base de datos.")
-        raise RuntimeError("Fallo crítico en el servicio de base de datos.") from None
+        # Si algo sale mal (ej: el programa de la BD está apagado o la contraseña es incorrecta),
+        # entraremos a este bloque 'except' para capturar el error.
+        logger.error(f"Error crítico al conectar con la base de datos: {e}")
+        
+        # Volvemos a 'lanzar' (raise) el error para que FastAPI sepa que hubo un fallo
+        # de conexión y pueda responder con un error HTTP 500 al cliente.
+        raise e

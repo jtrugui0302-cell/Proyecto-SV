@@ -29,3 +29,8 @@ dist-ssr
 
 # Entorno y variables secretas
 .env
+
+# Ignorar configuraciones locales de IA
+mcp.json
+
+agent.md

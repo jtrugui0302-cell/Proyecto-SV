@@ -1,6 +1,7 @@
 import React from 'react';
 import { RadioButton } from './RadioButton';
 import type { ConfiguracionProducto } from '../configuradorProductos';
+import { useDiccionarios } from '../hooks/useDiccionarios';
 
 interface SelectorControlesProps {
   config: ConfiguracionProducto;
@@ -12,6 +13,10 @@ interface SelectorControlesProps {
  * Responsabilidad: Agrupar los selectores principales de configuración en la parte superior.
  */
 export function SelectorControles({ config, handleChange }: SelectorControlesProps) {
+  const { modelos, modulos, isLoading, isError } = useDiccionarios();
+
+  if (isError) return <div className="text-red-500 text-center py-4">Error al cargar los datos del servidor.</div>;
+
   return (
     <div className="w-full px-4 md:px-8 xl:px-12 py-6 flex justify-center">
       <div className="flex flex-wrap gap-4 w-full justify-center">
@@ -24,13 +29,12 @@ export function SelectorControles({ config, handleChange }: SelectorControlesPro
             value={config.modeloPuerta}
             onChange={(e) => handleChange('modeloPuerta', e.target.value)}
             className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aec7] focus:border-transparent bg-white cursor-pointer text-center"
+            disabled={isLoading}
           >
-            <option value="" disabled>Selecciona...</option>
-            <option value="001">Modelo 1</option>
-            <option value="002">Modelo 2</option>
-            <option value="003">Modelo 3</option>
-            <option value="004">Modelo 4</option>
-            <option value="005">Modelo 5</option>
+            <option value="" disabled>{isLoading ? 'Cargando...' : 'Selecciona...'}</option>
+            {modelos.map((m) => (
+              <option key={m.id} value={m.id}>{m.modelo}</option>
+            ))}
           </select>
         </div>
 
@@ -43,13 +47,12 @@ export function SelectorControles({ config, handleChange }: SelectorControlesPro
             value={config.codigoModulo}
             onChange={(e) => handleChange('codigoModulo', e.target.value)}
             className="w-full px-2 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#00aec7] focus:border-transparent bg-white cursor-pointer text-center"
+            disabled={isLoading}
           >
-            <option value="" disabled>Selecciona...</option>
-            <option value="A">Módulo A</option>
-            <option value="B">Módulo B</option>
-            <option value="C">Módulo C</option>
-            <option value="1">Módulo 1</option>
-            <option value="2">Módulo 2</option>
+            <option value="" disabled>{isLoading ? 'Cargando...' : 'Selecciona...'}</option>
+            {modulos.map((m) => (
+              <option key={m.id} value={m.codigo_modulo}>{m.descripcion}</option>
+            ))}
           </select>
         </div>
 

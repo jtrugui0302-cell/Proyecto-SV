@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { RadioButton } from './RadioButton';
 import type { ConfiguracionProducto } from '../configuradorProductos';
+import { useDiccionarios } from '../hooks/useDiccionarios';
 import { 
   traduccionAcabado, 
   traduccionTirador, 
@@ -34,6 +35,24 @@ export function OpcionesDetalle({
   onSetCantidad,
   onAgregar,
 }: OpcionesDetalleProps) {
+  const { categoriasData, categoriasUnicas, isLoading, isError } = useDiccionarios();
+
+  // Filtrar subcategorías basándose en la categoría seleccionada (Regla 5.1: Calculate Derived State)
+  const subcategoriasFiltradas = useMemo(() => {
+    if (!config.categoria || !categoriasData.length) return [];
+    
+    const subcats = categoriasData.filter(c => c.cod_categoria === config.categoria);
+    
+    // Eliminamos duplicados por cod_subcategoria
+    return Array.from(
+      new Map(
+        subcats.map((c) => [c.cod_subcategoria, { cod_subcategoria: c.cod_subcategoria, nombre_subcategoria: c.nombre_subcategoria }])
+      ).values()
+    );
+  }, [categoriasData, config.categoria]);
+
+  if (isError) return <div className="text-red-500 text-center py-4">Error al cargar datos de categorías.</div>;
+
   return (
     <div className="col-span-12 lg:col-span-3 flex flex-col gap-6">
       {/* Categoría */}
@@ -41,15 +60,17 @@ export function OpcionesDetalle({
         <label className="block text-xs font-semibold text-gray-700 mb-2 uppercase">Categoría</label>
         <select
           value={config.categoria}
-          onChange={(e) => handleChange('categoria', e.target.value)}
+          onChange={(e) => {
+            handleChange('categoria', e.target.value);
+            handleChange('subcategoria', ''); // Resetear subcategoría al cambiar categoría
+          }}
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
+          disabled={isLoading}
         >
-          <option value="" disabled>Selecciona...</option>
-          <option value="05">Categoría 05</option>
-          <option value="10">Categoría 10</option>
-          <option value="15">Categoría 15</option>
-          <option value="20">Categoría 20</option>
-          <option value="25">Categoría 25</option>
+          <option value="" disabled>{isLoading ? 'Cargando...' : 'Selecciona...'}</option>
+          {categoriasUnicas.map(cat => (
+            <option key={cat.cod_categoria} value={cat.cod_categoria}>{cat.nombre_categoria}</option>
+          ))}
         </select>
       </div>
 
@@ -60,13 +81,14 @@ export function OpcionesDetalle({
           value={config.subcategoria}
           onChange={(e) => handleChange('subcategoria', e.target.value)}
           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white cursor-pointer"
+          disabled={isLoading || !config.categoria}
         >
-          <option value="" disabled>Selecciona...</option>
-          <option value="X">Subcategoría X</option>
-          <option value="Y">Subcategoría Y</option>
-          <option value="Z">Subcategoría Z</option>
-          <option value="A">Subcategoría A</option>
-          <option value="B">Subcategoría B</option>
+          <option value="" disabled>
+            {isLoading ? 'Cargando...' : !config.categoria ? 'Elige categoría primero' : 'Selecciona...'}
+          </option>
+          {subcategoriasFiltradas.map(sub => (
+            <option key={sub.cod_subcategoria} value={sub.cod_subcategoria}>{sub.nombre_subcategoria}</option>
+          ))}
         </select>
       </div>
 

@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
 from typing import List
+from psycopg2.extras import RealDictConnection
 
 from backend.core.database import get_db
-from backend.models.diccionarios import Modulo, ModeloMaterial, ArticuloCategorizacion
+from backend.repositories import diccionarios_repo
 from backend.schemas.diccionarios import (
     ModuloResponse,
     ModeloMaterialResponse,
@@ -16,23 +16,22 @@ router = APIRouter(
 )
 
 @router.get("/modulos", response_model=List[ModuloResponse])
-def get_modulos(db: Session = Depends(get_db)):
+def get_modulos(db: RealDictConnection = Depends(get_db)):
     """
     Retorna todos los colores de módulos para el desplegable.
     """
-    return db.query(Modulo).all()
+    return diccionarios_repo.get_all_modulos(db)
 
 @router.get("/modelos", response_model=List[ModeloMaterialResponse])
-def get_modelos(db: Session = Depends(get_db)):
+def get_modelos(db: RealDictConnection = Depends(get_db)):
     """
     Retorna todos los modelos/materiales de puerta.
     """
-    # Ordenamos explícitamente por 'id'
-    return db.query(ModeloMaterial).order_by(ModeloMaterial.id).all()
+    return diccionarios_repo.get_all_modelos(db)
 
 @router.get("/categorias", response_model=List[ArticuloCategorizacionResponse])
-def get_categorias(db: Session = Depends(get_db)):
+def get_categorias(db: RealDictConnection = Depends(get_db)):
     """
     Retorna todas las categorías y subcategorías para poblar los desplegables.
     """
-    return db.query(ArticuloCategorizacion).all()
+    return diccionarios_repo.get_all_categorias(db)

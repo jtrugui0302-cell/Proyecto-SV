@@ -1,4 +1,4 @@
-import useSWR from 'swr';
+import { useState, useEffect } from 'react';
 import { 
   moduloAdapter, 
   modeloMaterialAdapter, 
@@ -27,55 +27,80 @@ export interface ArticuloCategorizacion {
   url: string;
 }
 
-// Función fetcher genérica para SWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
-
 // URL base de la API (en un proyecto real esto iría en un archivo .env)
 const API_BASE_URL = 'http://localhost:8000/api/diccionarios';
 
 export function useDiccionarios() {
-  // SWR maneja el caching, deduplicación, reintentos y estados de carga automáticamente.
-  const { data: rawModulos, error: errorModulos, isLoading: loadingModulos } = useSWR(
-    `${API_BASE_URL}/modulos`,
-    fetcher
-  );
+  const [modulos, setModulos] = useState<Modulo[]>([]);
+  const [modelos, setModelos] = useState<ModeloMaterial[]>([]);
+  const [categoriasData, setCategoriasData] = useState<ArticuloCategorizacion[]>([]);
+  const [categoriasUnicas, setCategoriasUnicas] = useState<{ cod_categoria: string; nombre_categoria: string }[]>([]);
+  
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isError, setIsError] = useState<boolean>(false);
 
-  const { data: rawModelos, error: errorModelos, isLoading: loadingModelos } = useSWR(
-    `${API_BASE_URL}/modelos`,
-    fetcher
-  );
+  useEffect(() => {
+    let isMounted = true;
 
-  const { data: rawCategorias, error: errorCategorias, isLoading: loadingCategorias } = useSWR(
-    `${API_BASE_URL}/categorias`,
-    fetcher
-  );
+    async function fetchDiccionarios() {
+      try {
+        const [resModulos, resModelos, resCategorias] = await Promise.all([
+          fetch(`${API_BASE_URL}/modulos`),
+          fetch(`${API_BASE_URL}/modelos`),
+          fetch(`${API_BASE_URL}/categorias`)
+        ]);
 
-  // APLICAMOS LOS ADAPTADORES para blindar los datos
-  const modulos = moduloAdapter(rawModulos);
-  const modelos = modeloMaterialAdapter(rawModelos);
-  const categoriasData = articulosCategorizacionAdapter(rawCategorias);
+        if (!resModulos.ok || !resModelos.ok || !resCategorias.ok) {
+          throw new Error('Error fetching data from server');
+        }
 
-  // Derivar las categorías principales únicas (eliminando duplicados).
-  const categoriasUnicas = Array.from(
-    new Map(
-      categoriasData.map((c) => [
-        c.cod_categoria, 
-        { cod_categoria: c.cod_categoria, nombre_categoria: c.nombre_categoria }
-      ])
-    ).values()
-  );
+        const rawModulos = await resModulos.json();
+        const rawModelos = await resModelos.json();
+        const rawCategorias = await resCategorias.json();
+
+        if (isMounted) {
+          const modulosAdaptados = moduloAdapter(rawModulos) || [];
+          const modelosAdaptados = modeloMaterialAdapter(rawModelos) || [];
+          const categoriasAdaptadas = articulosCategorizacionAdapter(rawCategorias) || [];
+
+          // Derivar las categorías principales únicas (eliminando duplicados).
+          const unicas = Array.from(
+            new Map(
+              categoriasAdaptadas.map((c) => [
+                c.cod_categoria, 
+                { cod_categoria: c.cod_categoria, nombre_categoria: c.nombre_categoria }
+              ])
+            ).values()
+          );
+
+          setModulos(modulosAdaptados);
+          setModelos(modelosAdaptados);
+          setCategoriasData(categoriasAdaptadas);
+          setCategoriasUnicas(unicas);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (isMounted) {
+          console.error('Error in useDiccionarios:', error);
+          setIsError(true);
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchDiccionarios();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Dependencias vacías para asegurar que se ejecute una sola vez al montar
 
   return {
-    // Datos crudos
-    modulos: modulos || [],
-    modelos: modelos || [],
-    categoriasData: categoriasData || [],
-    
-    // Datos derivados
+    modulos,
+    modelos,
+    categoriasData,
     categoriasUnicas,
-
-    // Estados combinados
-    isLoading: loadingModulos || loadingModelos || loadingCategorias,
-    isError: errorModulos || errorModelos || errorCategorias,
+    isLoading,
+    isError,
   };
 }

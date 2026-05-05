@@ -1,4 +1,4 @@
-import { generarCodigoSV, ConfiguracionProducto } from '../configuradorProductos';
+import { generarCodigoSV, type ConfiguracionProducto } from '../configuradorProductos';
 
 describe('Generador de Códigos SV', () => {
   const configValida: ConfiguracionProducto = {
